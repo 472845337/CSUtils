@@ -67,6 +67,7 @@
     <Compile Include="Interfaces\POINT.cs" />
     <Compile Include="Interfaces\RECT.cs" />
     <Compile Include="IpUtils.cs" />
+    <Compile Include="LinkedHashMap.cs" />
     <Compile Include="MD5Utils.cs" />
     <Compile Include="NumberUtils.cs" />
     <Compile Include="PortUtils.cs" />
