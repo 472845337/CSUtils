@@ -35,6 +35,9 @@
     <Reference Include="CliWrap, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\CliWrap.2.5.0\lib\net45\CliWrap.dll</HintPath>
     </Reference>
+    <Reference Include="INIFileParser, Version=2.5.2.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
+      <HintPath>..\XStart2.0\packages\ini-parser.2.5.2\lib\net20\INIFileParser.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
@@ -50,13 +53,22 @@
     <Compile Include="AsdlUtils.cs" />
     <Compile Include="CdRomUtils.cs" />
     <Compile Include="CliWrapUtils.cs" />
+    <Compile Include="ConvertUtils.cs" />
+    <Compile Include="DateUtil.cs" />
     <Compile Include="DllUtils.cs" />
     <Compile Include="DumpUtils.cs" />
     <Compile Include="FileUtils.cs" />
+    <Compile Include="GZipUtil.cs" />
     <Compile Include="HttpUtils.cs" />
-    <Compile Include="IniUtils.cs" />
+    <Compile Include="IniParserUtils.cs" />
+    <Compile Include="Interfaces\IImageList.cs" />
+    <Compile Include="Interfaces\IMAGEINFO.cs" />
+    <Compile Include="Interfaces\IMAGELISTDRAWPARAMS.cs" />
+    <Compile Include="Interfaces\POINT.cs" />
+    <Compile Include="Interfaces\RECT.cs" />
     <Compile Include="IpUtils.cs" />
     <Compile Include="MD5Utils.cs" />
+    <Compile Include="NumberUtils.cs" />
     <Compile Include="PortUtils.cs" />
     <Compile Include="ProcessExt.cs" />
     <Compile Include="ProcessUtils.cs" />
@@ -81,5 +93,6 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

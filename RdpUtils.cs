@@ -5,8 +5,7 @@ using System.Text;
 using static Utils.DllUtils;
 
 namespace Utils {
-    public static class RdpUtils {
-
+    public class RdpUtils {
 
         private static string Encrypt(string password) {
             byte[] bytes = Encoding.Unicode.GetBytes(password);
@@ -47,7 +46,7 @@ namespace Utils {
          * username 用户名
          * password 密码
          * */
-        public static void CreateProfile(string filename, string address, string username, string password) {
+        public static void CreateProfile(string filename, string address, string username, string password, double height = 900, double width = 1440) {
 
             if (!File.Exists(filename)) {
                 // 取得该文件的目录，如果文件名为相对路径，且只有文件名,那么路径赋值空格,当为空格的时候，不会对路径进行操作
@@ -67,8 +66,8 @@ namespace Utils {
                     streamWriter.WriteLine("bitmapcachepersistenable:i:1");
                     streamWriter.WriteLine("compression:i:1");
                     streamWriter.WriteLine("connection type:i:7");
-                    streamWriter.WriteLine("desktopheight:i:900");
-                    streamWriter.WriteLine("desktopwidth:i:1440");
+                    streamWriter.WriteLine($"desktopheight:i:{height}");
+                    streamWriter.WriteLine($"desktopwidth:i:{width}");
                     streamWriter.WriteLine("disable cursor setting:i:0");
                     streamWriter.WriteLine("disable full window drag:i:1");
                     streamWriter.WriteLine("disable menu anims:i:1");

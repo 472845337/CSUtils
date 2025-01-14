@@ -238,7 +238,9 @@
         // 应用命令
         public const int WM_APPCOMMAND = 0x319;
         public const int WM_USER = 0x0400;
-
+        // LowerLevel键盘截获
+        public const int WH_KEYBOARD_LL = 13;
+        public const int WH_KEYBOARD = 2;
         #region 鼠标键
         public const int MK_LBUTTON = 0x0001;// 鼠标左键
         public const int MK_RBUTTON = 0x0002;// 鼠标右键
@@ -310,6 +312,8 @@
         public const int SHERB_NOPROGRESSUI = 0x000002;     //不显示删除过程的进度条
         public const int SHERB_NOSOUND = 0x000004;          //当删除完成时,不播放声音
 
+        public const uint SHSIID_FOLDER = 0x3;
+
         #region API 参数的常量定义
 
         public enum FileInfoFlags : uint {
@@ -323,10 +327,11 @@
             SHGFI_LINKOVERLAY = 0x000008000,  //  put a link overlay on icon
             SHGFI_SELECTED = 0x000010000,  //  show icon in selected state
             SHGFI_ATTR_SPECIFIED = 0x000020000,  //  get only specified attributes
-            SHGFI_LARGEICON = 0x000000000,  //  get large icon
-            SHGFI_SMALLICON = 0x000000001,  //  get small icon
-            SHGFI_OPENICON = 0x000000002,  //  get open icon
-            SHGFI_SHELLICONSIZE = 0x000000004,  //  get shell size icon
+            SHGFI_LARGEICON = 0x000000000,  //  get large icon 32x32
+            SHGFI_SMALLICON = 0x000000001,  //  get small icon 16x16
+            SHGFI_OPENICON = 0x000000002,  //  get open icon 48x48
+            SHGFI_SYSSMALL = 0x000000003, // get icon based off of GetSystemMetrics
+            SHGFI_SHELLICONSIZE = 0x000000004,  //  get shell size icon 256x256
             SHGFI_PIDL = 0x000000008,  //  pszPath is a pidl
             SHGFI_USEFILEATTRIBUTES = 0x000000010,  //  use passed dwFileAttribute
             SHGFI_ADDOVERLAYS = 0x000000020,  //  apply the appropriate overlays
@@ -386,6 +391,17 @@
             FEATURE_FEEDS = 26,
             FEATURE_BLOCK_INPUT_PROMPTS = 27,
             FEATURE_ENTRY_COUNT = 28
+        }
+        // 自定主窗口尺寸变化枚举
+        public enum ResizeDirection {
+            Left = 1,
+            Right = 2,
+            Top = 3,
+            TopLeft = 4,
+            TopRight = 5,
+            Bottom = 6,
+            BottomLeft = 7,
+            BottomRight = 8,
         }
     }
 }

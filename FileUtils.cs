@@ -20,11 +20,17 @@ namespace Utils {
             shortcut.Save();
         }
 
-        public static IWshShortcut ReadShortCut(string path) {
+        public static ShortCutUtil ReadShortCut(string path) {
             if (System.IO.File.Exists(path)) {
                 WshShell shell = new WshShell();
                 IWshShortcut shortCut = (IWshShortcut)shell.CreateShortcut(path);
-                return shortCut;
+                ShortCutUtil scu = new ShortCutUtil {
+                    FullName = shortCut.FullName,
+                    Arguments = shortCut.Arguments,
+                    Description = shortCut.Description, Hotkey = shortCut.Hotkey, TargetPath = shortCut.TargetPath, WindowStyle = shortCut.WindowStyle, WorkingDirectory = shortCut.WorkingDirectory
+
+                };
+                return scu;
             } else {
                 return null;
             }
@@ -43,6 +49,17 @@ namespace Utils {
         public static void CreateShortCutOnDesktop(string shortcutName, string targetPath, string description = null, string iconLocation = null) {
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             CreateShortCut(desktop, shortcutName, targetPath, description, iconLocation);
+        }
+
+        public class ShortCutUtil {
+            public string FullName { get; set; }
+            public string Arguments { get; set; }
+            public string Description { get; set; }
+            public string Hotkey { get; set; }
+            public string IconLocation { get; set; }
+            public string TargetPath { get; set; }
+            public int WindowStyle { get; set; }
+            public string WorkingDirectory { get; set; }
         }
     }
 }

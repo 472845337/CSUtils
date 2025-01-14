@@ -59,7 +59,7 @@ namespace Utils {
             if (WebRequestMethods.Http.Post.ToLower().Equals(type.ToLower())) {
                 // post
                 var writer = request.GetRequestStream();
-                var dataArray = null == data ? new Byte[] { } : Encoding.UTF8.GetBytes(data);
+                var dataArray = null == data ? new byte[] { } : Encoding.UTF8.GetBytes(data);
                 writer.Write(dataArray, 0, dataArray.Length);
                 writer.Flush();
             }
@@ -86,7 +86,7 @@ namespace Utils {
         /// <returns></returns>
         public static string PostRequest(string url, string data, string contentType, int timeout) {
             //定义request并设置request的路径
-            var request = HttpRequest(url, HttpUtils.TypePost, data, contentType, timeout);
+            var request = HttpRequest(url, TypePost, data, contentType, timeout);
             //定义response为前面的request响应
             HttpWebResponse response = null;
             Stream dataStream = null;
@@ -129,7 +129,7 @@ namespace Utils {
         /// <returns></returns>
         public static string GetRequest(string url, string contentType, int timeout) {
             //定义request并设置request的路径
-            var request = HttpRequest(url, HttpUtils.TypeGet, null, contentType, timeout);
+            var request = HttpRequest(url, TypeGet, null, contentType, timeout);
             //定义response为前面的request响应
             HttpWebResponse response = null;
             Stream dataStream = null;
@@ -153,6 +153,34 @@ namespace Utils {
             }
 
             return responseFromServer;
+        }
+        /// <summary>
+        /// 和风天气请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        public static string GetQRequest(string url, string contentType) {
+            //定义request并设置request的路径
+            var request = HttpRequest(url, TypeGet, null, contentType, 5 * 1000);
+            //定义response为前面的request响应
+            HttpWebResponse response = null;
+            Stream dataStream = null;
+            string result = null;
+            try {
+                response = (HttpWebResponse)request.GetResponse();
+                //定义response字符流
+                dataStream = response.GetResponseStream();
+                // GZip解压
+                result = GZipUtil.DecompressStream(dataStream);
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                //关闭资源
+                response?.Dispose();
+                dataStream?.Dispose();
+            }
+            return result;
         }
         /// <summary>
         /// 默认超时时间为15秒的同步Get请求
