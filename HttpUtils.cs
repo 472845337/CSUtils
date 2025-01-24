@@ -88,25 +88,16 @@ namespace Utils {
             //定义request并设置request的路径
             var request = HttpRequest(url, TypePost, data, contentType, timeout);
             //定义response为前面的request响应
-            HttpWebResponse response = null;
-            Stream dataStream = null;
-            StreamReader reader = null;
             string responseFromServer;
             try {
-                response = (HttpWebResponse)request.GetResponse();
+                using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 //定义response字符流
-                dataStream = response.GetResponseStream();
-                reader = new StreamReader(dataStream);
+                using Stream dataStream = response.GetResponseStream();
+                using StreamReader reader = new StreamReader(dataStream);
                 responseFromServer = reader.ReadToEnd();//读取所有
             } catch (Exception e) {
                 throw e;
-            } finally {
-                //关闭资源
-                reader?.Dispose();
-                dataStream?.Dispose();
-                response?.Dispose();
             }
-
             return responseFromServer;
         }
         /// <summary>
@@ -131,25 +122,15 @@ namespace Utils {
             //定义request并设置request的路径
             var request = HttpRequest(url, TypeGet, null, contentType, timeout);
             //定义response为前面的request响应
-            HttpWebResponse response = null;
-            Stream dataStream = null;
-            StreamReader reader = null;
             string responseFromServer;
             try {
-
-                response = (HttpWebResponse)request.GetResponse();
+                using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 //定义response字符流
-                dataStream = response.GetResponseStream();
-                reader = new StreamReader(dataStream);
+                using Stream dataStream = response.GetResponseStream();
+                using StreamReader reader = new StreamReader(dataStream);
                 responseFromServer = reader.ReadToEnd();//读取所有
-
             } catch (Exception e) {
                 throw e;
-            } finally {
-                //关闭资源
-                reader?.Dispose();
-                dataStream?.Dispose();
-                response?.Close();
             }
 
             return responseFromServer;
@@ -164,21 +145,15 @@ namespace Utils {
             //定义request并设置request的路径
             var request = HttpRequest(url, TypeGet, null, contentType, 5 * 1000);
             //定义response为前面的request响应
-            HttpWebResponse response = null;
-            Stream dataStream = null;
             string result = null;
             try {
-                response = (HttpWebResponse)request.GetResponse();
+                using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 //定义response字符流
-                dataStream = response.GetResponseStream();
+                using Stream dataStream = response.GetResponseStream();
                 // GZip解压
                 result = GZipUtil.DecompressStream(dataStream);
             } catch (Exception e) {
                 throw e;
-            } finally {
-                //关闭资源
-                response?.Dispose();
-                dataStream?.Dispose();
             }
             return result;
         }
