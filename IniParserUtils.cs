@@ -23,7 +23,7 @@ namespace Utils {
             #endregion
 
             if (!iniDataDic.TryGetValue(filePath, out IniData _iniData)) {
-                _iniData = iniParser.ReadFile(filePath, Encoding.UTF8);
+                _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
                 iniDataDic.Add(filePath, _iniData);
             }
             return _iniData;
@@ -43,7 +43,7 @@ namespace Utils {
                 GetIniData(filePath);
             }
             iniDataDic[filePath].Merge(iniData);
-            iniParser.WriteFile(filePath, iniDataDic[filePath], Encoding.UTF8);
+            iniParser.WriteFile(filePath, iniDataDic[filePath], new UTF8Encoding(false));
         }
 
         /// <summary>
