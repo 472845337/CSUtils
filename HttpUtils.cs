@@ -110,7 +110,14 @@ namespace Utils {
         public static string PostRequest(string url, string data, string contentType) {
             return PostRequest(url, data, contentType, 5 * 1000);
         }
-
+        public static int? GetPortFromUrl(string url) {
+            try {
+                Uri uri = new Uri(url);
+                return uri.Port; // 如果未指定端口，会返回默认端口（http=80, https=443）
+            } catch (UriFormatException) {
+                return null; // URL格式无效
+            }
+        }
         /// <summary>
         /// Get方式同步请求
         /// </summary>
