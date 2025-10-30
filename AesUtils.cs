@@ -9,13 +9,13 @@ namespace Utils {
         private static readonly byte[] Key = Convert.FromBase64String("Yl+wNn/Be259rsps4D9DkkjK6FcrHPOUsBNVZF39Puo=");
         private static readonly byte[] Iv = Convert.FromBase64String("fuDv69y3hkjoKs6ncA7Xvg==");
 
-       /// <summary>
-       /// AES加密字符串
-       /// </summary>
-       /// <param name="key">密钥</param>
-       /// <param name="iv">向量</param>
-       /// <param name="content">待加密内容</param>
-       /// <returns>加密结果</returns>
+        /// <summary>
+        /// AES加密字符串
+        /// </summary>
+        /// <param name="key">密钥</param>
+        /// <param name="iv">向量</param>
+        /// <param name="content">待加密内容</param>
+        /// <returns>加密结果</returns>
         public static string Encrypt(byte[] key, byte[] iv, string content) {
             byte[] textBytes = Encoding.UTF8.GetBytes(content);
             using Aes aes = Aes.Create();

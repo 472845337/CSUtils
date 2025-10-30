@@ -7,7 +7,7 @@ namespace Utils {
             if (!string.IsNullOrEmpty(value)) {
                 try {
                     result = Convert.ToBoolean(value);
-                }catch (Exception) { }
+                } catch (Exception) { }
             }
             return result;
         }

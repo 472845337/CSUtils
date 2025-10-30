@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace Utils {
@@ -29,7 +28,7 @@ namespace Utils {
                 sw.Close();
             }
             #endregion
-            
+
             if (!iniDataDic.TryGetValue(filePath, out IniData _iniData)) {
                 try {
                     _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
@@ -51,7 +50,7 @@ namespace Utils {
             var allLines = File.ReadAllLines(filePath, new UTF8Encoding(false));
             var validLines = new List<string>();
             bool checkValid = true;
-            foreach (string line in allLines) { 
+            foreach (string line in allLines) {
                 bool isRight = IsValidIniLine(line);
                 if (!isRight) {
                     // 存在异常行
