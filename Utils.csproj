@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="AesUtils.cs" />
     <Compile Include="AsdlUtils.cs" />
+    <Compile Include="Base64Util.cs" />
     <Compile Include="CdRomUtils.cs" />
     <Compile Include="CliWrapUtils.cs" />
     <Compile Include="ConvertUtils.cs" />
