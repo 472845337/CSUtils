@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Utils {
@@ -9,6 +10,13 @@ namespace Utils {
         private static readonly IniParser.FileIniDataParser iniParser = new IniParser.FileIniDataParser();
         private static readonly Dictionary<string, IniData> iniDataDic = new Dictionary<string, IniData>();
 
+        /// <summary>
+        /// 1.自动创建文件
+        /// 2.文件内容异常，自动去除异常行，替换为正确的内容
+        /// 3.ini数据放到字典中
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static IniData GetIniData(string filePath) {
             #region 如果文件不存在，创建文件
             string directoryPath = Path.GetDirectoryName(filePath);
@@ -21,12 +29,60 @@ namespace Utils {
                 sw.Close();
             }
             #endregion
-
+            
             if (!iniDataDic.TryGetValue(filePath, out IniData _iniData)) {
-                _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
+                try {
+                    _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
+                } catch (Exception ex) {
+                    IniFileCheck(filePath);
+                    _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
+                }
                 iniDataDic.Add(filePath, _iniData);
             }
             return _iniData;
+        }
+
+        /// <summary>
+        /// INI文件正确性校验并去掉非法行
+        /// </summary>
+        /// <param name="filePath"></param>
+        private static void IniFileCheck(string filePath) {
+            // 读取原始文件，过滤掉无效行
+            var allLines = File.ReadAllLines(filePath, new UTF8Encoding(false));
+            var validLines = new List<string>();
+            bool checkValid = true;
+            foreach (string line in allLines) { 
+                bool isRight = IsValidIniLine(line);
+                if (!isRight) {
+                    // 存在异常行
+                    checkValid = false;
+                } else {
+                    validLines.Add(line);
+                }
+            }
+            if (!checkValid) {
+                // 文件有格式错误，将正确的文件内容写入到文件中
+                File.WriteAllLines(filePath, validLines.ToArray(), new UTF8Encoding(false));
+            }
+        }
+
+        private static bool IsValidIniLine(string line) {
+            if (string.IsNullOrWhiteSpace(line))
+                return true; // 空行是允许的
+
+            line = line.Trim();
+
+            // 有效的行包括：
+            // - 节声明: [section]
+            // - 键值对: key=value
+            // - 注释: ;comment 或 #comment
+            // - 空行
+
+            return line.StartsWith("[") && line.EndsWith("]") ||  // 节
+                   line.Contains("=") ||                         // 键值对
+                   line.StartsWith(";") ||                       // 注释
+                   line.StartsWith("#") ||                       // 注释
+                   string.IsNullOrWhiteSpace(line);              // 空行
         }
 
         public static void SaveIniData(string filePath, string section, string key, string value) {
