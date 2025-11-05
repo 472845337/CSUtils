@@ -99,5 +99,16 @@ namespace Utils {
             }
             return bReturn;
         }
+
+        public static void TransferBool(string s, ref bool result, bool defaultValue) {
+            result = defaultValue;
+            try {
+                if (!string.IsNullOrEmpty(s)) {
+                    result = Convert.ToBoolean(s);
+                }
+            } catch {
+
+            }
+        }
     }
 }

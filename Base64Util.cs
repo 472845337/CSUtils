@@ -8,7 +8,7 @@ namespace Utils {
             try {
                 byte[] bytes = Encoding.UTF8.GetBytes(text);
                 return Convert.ToBase64String(bytes);
-            } catch (Exception ex) {
+            } catch {
                 // 异常了
                 return text;
             }
@@ -19,7 +19,7 @@ namespace Utils {
             try {
                 byte[] bytes = Convert.FromBase64String(base64String);
                 return Encoding.UTF8.GetString(bytes);
-            } catch (Exception ex) {
+            } catch {
                 return base64String;
             }
         }

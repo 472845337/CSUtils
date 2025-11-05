@@ -32,7 +32,7 @@ namespace Utils {
             if (!iniDataDic.TryGetValue(filePath, out IniData _iniData)) {
                 try {
                     _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
-                } catch (Exception ex) {
+                } catch (Exception) {
                     IniFileCheck(filePath);
                     _iniData = iniParser.ReadFile(filePath, new UTF8Encoding(false));
                 }
