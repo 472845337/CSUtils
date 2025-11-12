@@ -79,10 +79,10 @@ namespace Utils
             return bReturn;
         }
         //判断是否为正整数
-        public static bool IsInt(string s, out int result)
+        public static bool IsInt(string s, out int? result)
         {
             bool bReturn = false;
-            result = 0;
+            result = null;
             try
             {
                 if (!string.IsNullOrEmpty(s))
