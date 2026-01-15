@@ -46,7 +46,7 @@ namespace Utils {
          * username 用户名
          * password 密码
          * */
-        public static void CreateProfile(string filename, string address, string username, string password, double height = 900, double width = 1440) {
+        public static void CreateProfile(string filename, string address, string username, string password, bool mapDriver = false, double height = 900, double width = 1440) {
 
             if (!File.Exists(filename)) {
                 // 取得该文件的目录，如果文件名为相对路径，且只有文件名,那么路径赋值空格,当为空格的时候，不会对路径进行操作
@@ -74,7 +74,11 @@ namespace Utils {
                     streamWriter.WriteLine("disable themes:i:0");
                     streamWriter.WriteLine("disable wallpaper:i:0");
                     streamWriter.WriteLine("displayconnectionbar:i:1");
-                    streamWriter.WriteLine("drivestoredirect:s:");
+                    if (mapDriver) {
+                        streamWriter.WriteLine("drivestoredirect:s:*");
+                    } else {
+                        streamWriter.WriteLine("drivestoredirect:s:");
+                    }
                     streamWriter.WriteLine("enableworkspacereconnect:i:0");
                     streamWriter.WriteLine("full address:s:" + address);
                     streamWriter.WriteLine("gatewaybrokeringtype:i:0");
@@ -121,11 +125,11 @@ namespace Utils {
         /// <param name="address"></param>
         /// <param name="username"></param>
         /// <param name="password"></param>
-        public static void UpdateProfile(string filename, string address, string username, string password) {
+        public static void UpdateProfile(string filename, string address, string username, string password, bool mapDriver) {
             if (File.Exists(filename)) {
                 File.Delete(filename);
             }
-            CreateProfile(filename, address, username, password);
+            CreateProfile(filename, address, username, password, mapDriver);
         }
 
         /// <summary>
