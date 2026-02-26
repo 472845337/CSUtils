@@ -101,6 +101,15 @@ namespace Utils {
             iniParser.WriteFile(filePath, iniDataDic[filePath], new UTF8Encoding(false));
         }
 
+        public static void EraseSection(string filePath, string section) {
+            IniData iniData = GetIniData(filePath);
+            if (null != iniData &&
+                iniData.Sections.ContainsSection(section)) {
+                iniData.Sections.RemoveSection(section);
+                SaveIniData(filePath, iniData);
+            }
+        }
+
         /// <summary>
         /// Config配置放入IniData中
         /// </summary>
