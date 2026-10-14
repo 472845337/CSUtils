@@ -60,6 +60,7 @@
     <Compile Include="DllUtils.cs" />
     <Compile Include="DumpUtils.cs" />
     <Compile Include="FileUtils.cs" />
+    <Compile Include="FormFile.cs" />
     <Compile Include="GZipUtil.cs" />
     <Compile Include="HttpUtils.cs" />
     <Compile Include="IniParserUtils.cs" />

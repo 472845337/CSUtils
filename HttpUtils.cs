@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -172,6 +174,151 @@ namespace Utils {
         /// <returns></returns>
         public static string GetRequest(string url, string contentType) {
             return GetRequest(url, contentType, 5 * 1000);
+        }
+
+        /// <summary>
+        /// 创建Http请求（带自定义请求头和100-continue开关，供PostDog使用，移植自AppManager）
+        /// </summary>
+        public static HttpWebRequest HttpRequest(string url, string type, string data, string contentType, int timeout, Dictionary<string, string> head, bool expect100Continue) {
+            // 这里设置了协议类型。把SSL验证的设置写到HttpRequect创建之前
+            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.CheckCertificateRevocationList = true;
+            ServicePointManager.DefaultConnectionLimit = 100;
+            ServicePointManager.Expect100Continue = true;
+
+            HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+            // 配置请求头中如果配置了content-type，则使用请求头中的content-type
+            bool headHasContentType = false;
+            if (null != head && head.Count > 0) {
+                foreach (var headParam in head) {
+                    if (string.Equals("content-type", headParam.Key, StringComparison.OrdinalIgnoreCase)) {
+                        headHasContentType = true;
+                        request.ContentType = headParam.Value;
+                    } else {
+                        request.Headers.Add(headParam.Key, headParam.Value);
+                    }
+                }
+            }
+            if (!headHasContentType) {
+                request.ContentType = string.IsNullOrEmpty(contentType) ? ContentTypeJson : contentType;
+            }
+            request.UserAgent = DEFAULT_USER_AGENT;
+            request.Method = type;
+            request.KeepAlive = false;
+            request.Timeout = timeout;
+            request.ServicePoint.Expect100Continue = expect100Continue; // 当为false表示判定是否接受客户端主体
+                                                                        // 允许GET等请求携带请求体（raw方式GET发送使用）
+            var requestType = request.GetType();
+            var currentMethod = requestType.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
+            var methodType = currentMethod.GetType();
+            methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
+            var writer = request.GetRequestStream();
+            var dataArray = null == data ? new byte[] { } : Encoding.UTF8.GetBytes(data);
+            writer.Write(dataArray, 0, dataArray.Length);
+            writer.Flush();
+            return request;
+        }
+
+        /// <summary>
+        /// 创建 multipart/form-data 类型的 Http 请求，支持文件上传（移植自AppManager）
+        /// </summary>
+        public static HttpWebRequest HttpRequestMultipart(string url, string type,
+            Dictionary<string, List<string>> textParams, List<FormFile> files,
+            int timeout, Dictionary<string, string> head, bool expect100Continue) {
+
+            // 这里设置了协议类型。把SSL验证的设置写到HttpRequect创建之前
+            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.CheckCertificateRevocationList = true;
+            ServicePointManager.DefaultConnectionLimit = 100;
+            ServicePointManager.Expect100Continue = true;
+
+            HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+
+            // 设置请求头（不包含 Content-Type，因为后面需要设置 boundary）
+            if (null != head && head.Count > 0) {
+                foreach (var headParam in head) {
+                    if (!string.Equals("content-type", headParam.Key, StringComparison.OrdinalIgnoreCase)) {
+                        request.Headers.Add(headParam.Key, headParam.Value);
+                    }
+                }
+            }
+
+            request.UserAgent = DEFAULT_USER_AGENT;
+            request.Method = type;
+            request.KeepAlive = false;
+            request.Timeout = timeout;
+            request.ServicePoint.Expect100Continue = expect100Continue;
+
+            // 生成 boundary
+            string boundary = "----WebKitFormBoundary" + DateTime.Now.Ticks.ToString("x");
+            request.ContentType = $"multipart/form-data; boundary={boundary}";
+
+            // 允许写入 POST 数据
+            var requestType = request.GetType();
+            var currentMethod = requestType.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
+            var methodType = currentMethod.GetType();
+            methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
+
+            // 构建 multipart 数据
+            using (var stream = request.GetRequestStream()) {
+                // 写入文本参数
+                if (textParams != null) {
+                    foreach (var param in textParams) {
+                        foreach (var value in param.Value) {
+                            WriteMultipartPart(stream, boundary, param.Key, value, null, null, null);
+                        }
+                    }
+                }
+
+                // 写入文件参数
+                if (files != null) {
+                    foreach (var file in files) {
+                        WriteMultipartPart(stream, boundary, file.Name, null, file.FileName, file.Content, file.ContentType);
+                    }
+                }
+
+                // 写入结束 boundary
+                byte[] endBoundary = Encoding.UTF8.GetBytes($"--{boundary}--\r\n");
+                stream.Write(endBoundary, 0, endBoundary.Length);
+            }
+            return request;
+        }
+
+        /// <summary>
+        /// 写入 multipart 数据部分
+        /// </summary>
+        private static void WriteMultipartPart(Stream stream, string boundary, string name, string textValue,
+            string fileName, byte[] fileContent, string contentType = null) {
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"--{boundary}\r\n");
+            sb.Append($"Content-Disposition: form-data; name=\"{name}\"");
+
+            if (!string.IsNullOrEmpty(fileName)) {
+                sb.Append($"; filename=\"{fileName}\"");
+                if (!string.IsNullOrEmpty(contentType)) {
+                    sb.Append($"\r\nContent-Type: {contentType}");
+                }
+            }
+
+            sb.Append("\r\n\r\n");
+
+            // 写入头部
+            byte[] headerBytes = Encoding.UTF8.GetBytes(sb.ToString());
+            stream.Write(headerBytes, 0, headerBytes.Length);
+
+            // 写入内容
+            if (fileContent != null) {
+                stream.Write(fileContent, 0, fileContent.Length);
+            } else if (!string.IsNullOrEmpty(textValue)) {
+                byte[] textBytes = Encoding.UTF8.GetBytes(textValue);
+                stream.Write(textBytes, 0, textBytes.Length);
+            }
+
+            // 写入 \r\n
+            byte[] crlf = Encoding.UTF8.GetBytes("\r\n");
+            stream.Write(crlf, 0, crlf.Length);
         }
 
         private static bool CheckValidationResult(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) {
