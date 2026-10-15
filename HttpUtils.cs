@@ -10,12 +10,17 @@ using System.Text;
 namespace Utils {
     /// <summary>
     /// Http请求工具类
-    /// Get和Post方法
+    /// 支持Get/Post/Put/Patch/Delete/Head/Options请求方式
     /// 
     /// </summary>
     public static class HttpUtils {
         public const string TypeGet = WebRequestMethods.Http.Get;
         public const string TypePost = WebRequestMethods.Http.Post;
+        public const string TypePut = WebRequestMethods.Http.Put;
+        public const string TypeDelete = "DELETE";
+        public const string TypePatch = "PATCH";
+        public const string TypeHead = WebRequestMethods.Http.Head;
+        public const string TypeOptions = "OPTIONS";
         public const string Http = "http://";
         public const string Https = "https://";
 
@@ -30,11 +35,22 @@ namespace Utils {
         public const string ContentTypeXml = "application/xml";
 
         /// <summary>
+        /// 是否为可携带请求体的请求方式（Post/Put/Patch/Delete）；
+        /// Get/Head/Options按无请求体处理（需要强制携带请求数据时可使用带head参数的HttpRequest重载）
+        /// </summary>
+        public static bool HasRequestBody(string type) {
+            return TypePost.Equals(type, StringComparison.OrdinalIgnoreCase)
+                || TypePut.Equals(type, StringComparison.OrdinalIgnoreCase)
+                || TypePatch.Equals(type, StringComparison.OrdinalIgnoreCase)
+                || TypeDelete.Equals(type, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// 创建Http请求，可用于后续的异步或同步操作
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="type">post或get</param>
-        /// <param name="data">Post时的数据，Get无效</param>
+        /// <param name="type">请求方式，见TypeGet/TypePost等常量</param>
+        /// <param name="data">请求数据，仅可携带请求体的方式（Post/Put/Patch/Delete）生效</param>
         /// <param name="contentType"></param>
         /// <param name="timeout">超时</param>
         /// <returns></returns>
@@ -58,8 +74,8 @@ namespace Utils {
             request.KeepAlive = false;
             request.Timeout = timeout;
             // request.ReadWriteTimeout = timeout;
-            if (WebRequestMethods.Http.Post.ToLower().Equals(type.ToLower())) {
-                // post
+            if (HasRequestBody(type)) {
+                // 可携带请求体的方式写入请求数据
                 var writer = request.GetRequestStream();
                 var dataArray = null == data ? new byte[] { } : Encoding.UTF8.GetBytes(data);
                 writer.Write(dataArray, 0, dataArray.Length);
@@ -79,6 +95,20 @@ namespace Utils {
         }
 
         /// <summary>
+        /// 执行同步请求并读取响应为字符串
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private static string ReadResponse(HttpWebRequest request) {
+            //定义response为前面的request响应
+            using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            //定义response字符流
+            using Stream dataStream = response.GetResponseStream();
+            using StreamReader reader = new StreamReader(dataStream);
+            return reader.ReadToEnd();//读取所有
+        }
+
+        /// <summary>
         /// Post同步请求
         /// </summary>
         /// <param name="url">地址</param>
@@ -87,20 +117,7 @@ namespace Utils {
         /// <param name="timeout">超时时间/ms，当为System.Threading.Timeout.Infinite(-1)时表示不超时</param>
         /// <returns></returns>
         public static string PostRequest(string url, string data, string contentType, int timeout) {
-            //定义request并设置request的路径
-            var request = HttpRequest(url, TypePost, data, contentType, timeout);
-            //定义response为前面的request响应
-            string responseFromServer;
-            try {
-                using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                //定义response字符流
-                using Stream dataStream = response.GetResponseStream();
-                using StreamReader reader = new StreamReader(dataStream);
-                responseFromServer = reader.ReadToEnd();//读取所有
-            } catch (Exception e) {
-                throw e;
-            }
-            return responseFromServer;
+            return ReadResponse(HttpRequest(url, TypePost, data, contentType, timeout));
         }
         /// <summary>
         /// 使用默认超时的Post同步请求
@@ -111,6 +128,68 @@ namespace Utils {
         /// <returns></returns>
         public static string PostRequest(string url, string data, string contentType) {
             return PostRequest(url, data, contentType, 5 * 1000);
+        }
+        /// <summary>
+        /// Put同步请求
+        /// </summary>
+        /// <param name="url">地址</param>
+        /// <param name="data">参数数据</param>
+        /// <param name="contentType">内容格式</param>
+        /// <param name="timeout">超时时间/ms，当为System.Threading.Timeout.Infinite(-1)时表示不超时</param>
+        /// <returns></returns>
+        public static string PutRequest(string url, string data, string contentType, int timeout) {
+            return ReadResponse(HttpRequest(url, TypePut, data, contentType, timeout));
+        }
+        /// <summary>
+        /// 使用默认超时的Put同步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="data"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        public static string PutRequest(string url, string data, string contentType) {
+            return PutRequest(url, data, contentType, 5 * 1000);
+        }
+        /// <summary>
+        /// Patch同步请求
+        /// </summary>
+        /// <param name="url">地址</param>
+        /// <param name="data">参数数据</param>
+        /// <param name="contentType">内容格式</param>
+        /// <param name="timeout">超时时间/ms，当为System.Threading.Timeout.Infinite(-1)时表示不超时</param>
+        /// <returns></returns>
+        public static string PatchRequest(string url, string data, string contentType, int timeout) {
+            return ReadResponse(HttpRequest(url, TypePatch, data, contentType, timeout));
+        }
+        /// <summary>
+        /// 使用默认超时的Patch同步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="data"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        public static string PatchRequest(string url, string data, string contentType) {
+            return PatchRequest(url, data, contentType, 5 * 1000);
+        }
+        /// <summary>
+        /// Delete同步请求
+        /// </summary>
+        /// <param name="url">地址</param>
+        /// <param name="data">参数数据，一般Delete无需请求体，可为null</param>
+        /// <param name="contentType">内容格式</param>
+        /// <param name="timeout">超时时间/ms，当为System.Threading.Timeout.Infinite(-1)时表示不超时</param>
+        /// <returns></returns>
+        public static string DeleteRequest(string url, string data, string contentType, int timeout) {
+            return ReadResponse(HttpRequest(url, TypeDelete, data, contentType, timeout));
+        }
+        /// <summary>
+        /// 使用默认超时且无请求体的Delete同步请求
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        public static string DeleteRequest(string url, string contentType) {
+            return DeleteRequest(url, null, contentType, 5 * 1000);
         }
         public static int? GetPortFromUrl(string url) {
             try {
@@ -129,20 +208,7 @@ namespace Utils {
         /// <returns></returns>
         public static string GetRequest(string url, string contentType, int timeout) {
             //定义request并设置request的路径
-            var request = HttpRequest(url, TypeGet, null, contentType, timeout);
-            //定义response为前面的request响应
-            string responseFromServer;
-            try {
-                using HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                //定义response字符流
-                using Stream dataStream = response.GetResponseStream();
-                using StreamReader reader = new StreamReader(dataStream);
-                responseFromServer = reader.ReadToEnd();//读取所有
-            } catch (Exception e) {
-                throw e;
-            }
-
-            return responseFromServer;
+            return ReadResponse(HttpRequest(url, TypeGet, null, contentType, timeout));
         }
         /// <summary>
         /// 和风天气请求
