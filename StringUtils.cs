@@ -29,6 +29,14 @@ namespace Utils
             return str.Replace("\n", "").Replace("\t", "").Replace("\r", "").Trim();
         }
 
+        /**
+        * bat中%用于引用变量/批处理参数（如%2会被展开成参数值），
+        * 需要原样传给java的%（如URL编码的%2B）必须转义为%%
+        *
+        * */
+        public static string EscapeBatSpecialChar(string str) {
+            return string.IsNullOrEmpty(str) ? str : str.Replace("%", "%%");
+        }
 
         public static string FormatSize(float byteSize)
         {
