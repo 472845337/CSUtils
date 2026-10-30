@@ -6,6 +6,7 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Utils {
     /// <summary>
@@ -43,6 +44,46 @@ namespace Utils {
                 || TypePut.Equals(type, StringComparison.OrdinalIgnoreCase)
                 || TypePatch.Equals(type, StringComparison.OrdinalIgnoreCase)
                 || TypeDelete.Equals(type, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 为无协议的地址自动补全协议头：IP地址补http://，域名补https://。
+        /// 已带http/https协议（不区分大小写）的地址原样返回；返回值已去除首尾空白
+        /// </summary>
+        public static string CompleteUrl(string url) {
+            if (string.IsNullOrEmpty(url)) {
+                return url;
+            }
+            var address = url.Trim();
+            if (address.StartsWith(Http, StringComparison.OrdinalIgnoreCase)
+                || address.StartsWith(Https, StringComparison.OrdinalIgnoreCase)) {
+                return address;
+            }
+            return GetSchemeByHost(address) + address;
+        }
+
+        /// <summary>
+        /// 按host判断该补的协议头：IP地址（IPv4/IPv6字面量）和localhost通常没有证书走http://，
+        /// 其余按域名走https://。host取端口/路径/查询参数之前的部分
+        /// </summary>
+        private static string GetSchemeByHost(string address) {
+            var host = address;
+            var cut = host.IndexOfAny(new[] { '/', '?', '#' });
+            if (cut >= 0) {
+                host = host.Substring(0, cut);
+            }
+            if (host.StartsWith("[")) {
+                return Http; // IPv6字面量如[::1]:8080
+            }
+            var portCut = host.LastIndexOf(':');
+            if (portCut >= 0) {
+                host = host.Substring(0, portCut);
+            }
+            if ("localhost".Equals(host, StringComparison.OrdinalIgnoreCase)
+                || Regex.IsMatch(host, @"^\d{1,3}(\.\d{1,3}){3}$")) {
+                return Http;
+            }
+            return Https;
         }
 
         /// <summary>
